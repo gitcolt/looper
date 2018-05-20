@@ -1,13 +1,15 @@
 //TODO: Tone.Transport.bpm.value = val
+// give notes a changeable duration
 <template>
+  <!-- eslint-disable vue/require-v-for-key -->
   <div class='looper'>
     <h1 id='title'>{{ msg }}</h1>
     <button v-if='!playing' @click='play'>START</button>
     <button v-else @click='stop'>STOP</button>
+    <br>
+    <input type='range' min='1' max='8' value='1'>
     <div id='grid'>
-      <!-- eslint-disable-next-line vue/no-unused-vars vue/require-v-for-key -->
       <div class='measure' v-for='m in grid.measures'>
-        <!-- eslint-disable-next-line vue/no-unused-vars vue/require-v-for-key -->
         <div class='col' v-for='col in m'>
           <div class='pointer'></div>
           <Cell v-for='(cell, index) in col' @toggle-activated='toggleActivated(cell)' :key='index'></Cell>
@@ -18,8 +20,10 @@
 </template>
 
 <script>
+/* eslint-disable no-multi-spaces */
 import Tone from 'tone'
 import Cell from './Cell'
+let part
 
 export default {
   name: 'Looper',
@@ -30,10 +34,9 @@ export default {
     return {
       playing: false,
       msg: 'Looper',
-      notes: [0, 0, 0, 0],
       grid: {},
-      numMeasures: 4,
-      numCols: 3,
+      numMeasures: 2,
+      numCols: 4,
       numRows: 5
     }
   },
@@ -43,30 +46,43 @@ export default {
       this.grid.measures.push([])
       for (let col = 0; col < this.numCols; col++) {
         this.grid.measures[m].push([])
+        // Assign notes
+        let time = m + ':' + col
+        this.grid.measures[m][col].push({isActive: false, note: 'E4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'D#4', time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'D4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'C#4', time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'C4',  time: time})
+        /*
         for (let row = 0; row < this.numRows; row++) {
           let cell = {isActive: false}
           this.grid.measures[m][col].push(cell)
         }
+        */
       }
     }
 
     let synth = new Tone.MonoSynth().toMaster()
 
-    let part = new Tone.Part((time, note) => {
-      synth.triggerAttackRelease(note, '8n', time)
-    }, [['0:0:0', 'C3'], ['0:0:4', 'D3'], ['0:0:8', 'E3'], ['0:0:12', 'G3']]).start('0')
+    part = new Tone.Part((time, event) => {
+      synth.triggerAttackRelease(event.note, event.dur, time)
+      Tone.Draw.schedule(() => {
+
+      }, time)
+    }, [{time: '0:0:0', note: 'C3', dur: '4n'}, {time: '0:0:8', note: 'E3', dur: '4n'}, {time: '0:0:12', note: 'G3', dur: '4n'}]).start('0')
     part.loop = true
-    part.loopEnd = '1:0:0'
-    /*
-    let loop = new Tone.Loop((time) => {
-      synth.triggerAttackRelease('C1', '8n', time)
-    }, '16n')
-    loop.start(0)
-    */
+    let end = this.numMeasures + ':0:0'
+    part.loopEnd = end
   },
   methods: {
     toggleActivated (cell) {
-      cell.isActive = !cell.isActive
+      if (!cell.isActive) {
+        cell.isActive = true
+        part.at(cell.time, {time: cell.time, note: cell.note, dur: '4n'})
+      } else {
+        cell.isActive = false
+        part.remove(cell.time)
+      }
     },
     play () {
       Tone.Transport.start()
@@ -92,8 +108,8 @@ export default {
   flex-direction: row;
 }
 .measure {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  flex-direction: row;
 }
 .col {
   display: flex;
@@ -102,8 +118,12 @@ export default {
 .pointer {
   width: 20px;
   height: 20px;
-  background: blue;
+  //background: blue;
   margin: 2px;
+  //border: 1px solid black;
+}
+.pointer-active {
+  background: blue;
   border: 1px solid black;
 }
 #title {
