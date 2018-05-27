@@ -8,15 +8,15 @@
     <button v-else @click='stop'>STOP</button>
     <br>
     <div id='loop-container'>
-        <div id='part-tabs-container'>
-            <div class='part-tab' v-for='part in parts' @click='selectPart(part)' :class='{ "active-part-tab": part.isActive }'>
-                {{part.name}}
+        <div id='instrument-tabs-container'>
+            <div class='instrument-tab' v-for='instrument in instruments' @click='selectInstrument(instrument)' :class='{ "active-instrument-tab": instrument.isActive }'>
+                {{instrument.name}}
             </div>
         </div>
         <div id='grid-container'>
           <input id='slider' type='range' min='1' max='9' step='1'>
-          <div id='grid' v-for='(part, partIndex) in parts' v-show='part.isActive'>
-            <div class='measure' v-for='m in parts[partIndex].grid.measures'>
+          <div id='grid' v-for='(instrument, instrumentIndex) in instruments' v-show='instrument.isActive'>
+            <div class='measure' v-for='m in instruments[instrumentIndex].grid.measures'>
               <div class='col' v-for='col in m'>
                 <!--<div class='pointer'></div>-->
                 <Cell class='grid-cell' v-for='(cell, cellIndex) in col' @toggle-activated='toggleActivated(cell)' :key='cellIndex'></Cell>
@@ -33,6 +33,7 @@
 import Tone from 'tone'
 import Cell from './Cell'
 let part
+let part2
 
 export default {
   name: 'Looper',
@@ -47,34 +48,36 @@ export default {
       numMeasures: 4,
       numCols: 4,
       numRows: 5,
-      parts: [{name: 'Part 1', isActive: true, grid: {}}, {name: 'Part 2', isActive: false, grid: {}}, {name: 'Part 3', isActive: false, grid: {}}]
+      instruments: [{name: 'Instrument 1', isActive: true, grid: {}}, {name: 'Instrument 2', isActive: false, grid: {}}, {name: 'Instrument 3', isActive: false, grid: {}}]
     }
   },
   created () {
-    for (let p = 0; p < this.parts.length; p++) {
-      this.parts[p].grid.measures = []
+    Tone.Transport.bpm.value = 300
+
+    for (let i = 0; i < this.instruments.length; i++) {
+      this.instruments[i].grid.measures = []
       for (let m = 0; m < this.numMeasures; m++) {
-        this.parts[p].grid.measures.push([])
+        this.instruments[i].grid.measures.push([])
         for (let col = 0; col < this.numCols; col++) {
-          this.parts[p].grid.measures[m].push([])
+          this.instruments[i].grid.measures[m].push([])
           // Assign notes
           let time = m + ':' + col
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'B4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'A#4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'A4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'G#4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'G4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'F#4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'F4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'E4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'D#4', time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'D4',  time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'C#4', time: time})
-          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'C4',  time: time})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'B4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'A#4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'A4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'G#4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'G4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'F#4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'F4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'E4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'D#4', time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'D4',  time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'C#4', time: time, part: i})
+          this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'C4',  time: time, part: i})
           /*
           for (let row = 0; row < this.numRows; row++) {
             let cell = {isActive: false}
-            this.parts[p].grid.measures[m][col].push(cell)
+            this.instruments[i].grid.measures[m][col].push(cell)
           }
           */
         }
@@ -87,23 +90,38 @@ export default {
         Tone.Draw.schedule(() => {
 
         }, time)
-      }, [{time: '0:0:0', note: 'C3', dur: '4n'}, {time: '0:0:8', note: 'E3', dur: '4n'}, {time: '0:0:12', note: 'G3', dur: '4n'}]).start('0')
+      // }, [{time: '0:0:0', note: 'C3', dur: '4n'}, {time: '0:0:8', note: 'E3', dur: '4n'}, {time: '0:0:12', note: 'G3', dur: '4n'}]).start('0')
+      }, []).start('0')
       part.loop = true
       let end = this.numMeasures + ':0:0'
       part.loopEnd = end
+
+      let asdf = new Tone.MembraneSynth().toMaster()
+      part2 = new Tone.Part((time, event) => {
+        asdf.triggerAttackRelease(event.note, event.dur, time)
+        Tone.Draw.schedule(() => {
+
+        }, time)
+      }, []).start('0')
+      part2.loop = true
+      part2.loopEnd = end
     }
   },
   methods: {
-    selectPart (part) {
-      for (let p of this.parts) {
-        p.isActive = false
+    selectInstrument (instrument) {
+      for (let i of this.instruments) {
+        i.isActive = false
       }
-      part.isActive = true
+      instrument.isActive = true
     },
     toggleActivated (cell) {
       if (!cell.isActive) {
         cell.isActive = true
-        part.at(cell.time, {time: cell.time, note: cell.note, dur: '4n'})
+        if (cell.part === 0) {
+          part.at(cell.time, {time: cell.time, note: cell.note, dur: '4n'})
+        } else if (cell.part === 1) {
+          part2.at(cell.time, {time: cell.time, note: cell.note, dur: '4n'})
+        }
       } else {
         cell.isActive = false
         part.remove(cell.time)
@@ -172,14 +190,14 @@ export default {
   //justify-content: space-around;
 }
 
-#part-tabs-container {
+#instrument-tabs-container {
     flex: 1;
     background: orange;
     display: flex;
     flex-direction: column;
 }
 
-.part-tab {
+.instrument-tab {
     flex: 1;
     border: 1px solid tomato;
     display: flex;
@@ -187,7 +205,7 @@ export default {
     align-items: center;
 }
 
-.active-part-tab {
+.active-instrument-tab {
     background: darkorange;
 }
 
