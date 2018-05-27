@@ -15,11 +15,11 @@
         </div>
         <div id='grid-container'>
           <input id='slider' type='range' min='1' max='9' step='1'>
-          <div id='grid'>
-            <div class='measure' v-for='m in grid.measures'>
+          <div id='grid' v-for='(part, partIndex) in parts' v-show='part.isActive'>
+            <div class='measure' v-for='m in parts[partIndex].grid.measures'>
               <div class='col' v-for='col in m'>
                 <!--<div class='pointer'></div>-->
-                <Cell class='grid-cell' v-for='(cell, index) in col' @toggle-activated='toggleActivated(cell)' :key='index'></Cell>
+                <Cell class='grid-cell' v-for='(cell, cellIndex) in col' @toggle-activated='toggleActivated(cell)' :key='cellIndex'></Cell>
                 </div>
               </div>
             </div>
@@ -47,49 +47,51 @@ export default {
       numMeasures: 4,
       numCols: 4,
       numRows: 5,
-      parts: [{name: '1', isActive: true}, {name: '2', isActive: false}, {name: '3', isActive: false}]
+      parts: [{name: 'Part 1', isActive: true, grid: {}}, {name: 'Part 2', isActive: false, grid: {}}, {name: 'Part 3', isActive: false, grid: {}}]
     }
   },
   created () {
-    this.grid.measures = []
-    for (let m = 0; m < this.numMeasures; m++) {
-      this.grid.measures.push([])
-      for (let col = 0; col < this.numCols; col++) {
-        this.grid.measures[m].push([])
-        // Assign notes
-        let time = m + ':' + col
-        this.grid.measures[m][col].push({isActive: false, note: 'B4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'A#4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'A4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'G#4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'G4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'F#4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'F4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'E4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'D#4', time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'D4',  time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'C#4', time: time})
-        this.grid.measures[m][col].push({isActive: false, note: 'C4',  time: time})
-        /*
-        for (let row = 0; row < this.numRows; row++) {
-          let cell = {isActive: false}
-          this.grid.measures[m][col].push(cell)
+    for (let p = 0; p < this.parts.length; p++) {
+      this.parts[p].grid.measures = []
+      for (let m = 0; m < this.numMeasures; m++) {
+        this.parts[p].grid.measures.push([])
+        for (let col = 0; col < this.numCols; col++) {
+          this.parts[p].grid.measures[m].push([])
+          // Assign notes
+          let time = m + ':' + col
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'B4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'A#4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'A4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'G#4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'G4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'F#4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'F4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'E4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'D#4', time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'D4',  time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'C#4', time: time})
+          this.parts[p].grid.measures[m][col].push({isActive: false, note: 'C4',  time: time})
+          /*
+          for (let row = 0; row < this.numRows; row++) {
+            let cell = {isActive: false}
+            this.parts[p].grid.measures[m][col].push(cell)
+          }
+          */
         }
-        */
       }
+
+      let synth = new Tone.MonoSynth().toMaster()
+
+      part = new Tone.Part((time, event) => {
+        synth.triggerAttackRelease(event.note, event.dur, time)
+        Tone.Draw.schedule(() => {
+
+        }, time)
+      }, [{time: '0:0:0', note: 'C3', dur: '4n'}, {time: '0:0:8', note: 'E3', dur: '4n'}, {time: '0:0:12', note: 'G3', dur: '4n'}]).start('0')
+      part.loop = true
+      let end = this.numMeasures + ':0:0'
+      part.loopEnd = end
     }
-
-    let synth = new Tone.MonoSynth().toMaster()
-
-    part = new Tone.Part((time, event) => {
-      synth.triggerAttackRelease(event.note, event.dur, time)
-      Tone.Draw.schedule(() => {
-
-      }, time)
-    }, [{time: '0:0:0', note: 'C3', dur: '4n'}, {time: '0:0:8', note: 'E3', dur: '4n'}, {time: '0:0:12', note: 'G3', dur: '4n'}]).start('0')
-    part.loop = true
-    let end = this.numMeasures + ':0:0'
-    part.loopEnd = end
   },
   methods: {
     selectPart (part) {
