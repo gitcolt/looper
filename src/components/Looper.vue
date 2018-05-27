@@ -8,12 +8,9 @@
     <button v-else @click='stop'>STOP</button>
     <br>
     <div id='loop-container'>
-        <div id='tabs-container'>
-            <div class='tab'>
-            </div>
-            <div class='tab'>
-            </div>
-            <div class='tab'>
+        <div id='part-tabs-container'>
+            <div class='part-tab' v-for='part in parts' @click='selectPart(part)' :class='{ "active-part-tab": part.isActive }'>
+                {{part.name}}
             </div>
         </div>
         <div id='grid-container'>
@@ -47,9 +44,10 @@ export default {
       playing: false,
       msg: 'Looper',
       grid: {},
-      numMeasures: 2,
+      numMeasures: 4,
       numCols: 4,
-      numRows: 5
+      numRows: 5,
+      parts: [{name: '1', isActive: true}, {name: '2', isActive: false}, {name: '3', isActive: false}]
     }
   },
   created () {
@@ -60,6 +58,13 @@ export default {
         this.grid.measures[m].push([])
         // Assign notes
         let time = m + ':' + col
+        this.grid.measures[m][col].push({isActive: false, note: 'B4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'A#4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'A4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'G#4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'G4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'F#4',  time: time})
+        this.grid.measures[m][col].push({isActive: false, note: 'F4',  time: time})
         this.grid.measures[m][col].push({isActive: false, note: 'E4',  time: time})
         this.grid.measures[m][col].push({isActive: false, note: 'D#4', time: time})
         this.grid.measures[m][col].push({isActive: false, note: 'D4',  time: time})
@@ -87,6 +92,12 @@ export default {
     part.loopEnd = end
   },
   methods: {
+    selectPart (part) {
+      for (let p of this.parts) {
+        p.isActive = false
+      }
+      part.isActive = true
+    },
     toggleActivated (cell) {
       if (!cell.isActive) {
         cell.isActive = true
@@ -159,19 +170,23 @@ export default {
   //justify-content: space-around;
 }
 
-#tabs-container {
+#part-tabs-container {
     flex: 1;
     background: orange;
     display: flex;
     flex-direction: column;
 }
 
-.tab {
+.part-tab {
     flex: 1;
     border: 1px solid tomato;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.active-tab {
+.active-part-tab {
+    background: darkorange;
 }
 
 #loop-container {
