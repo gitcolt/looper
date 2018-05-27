@@ -7,14 +7,26 @@
     <button v-if='!playing' @click='play'>START</button>
     <button v-else @click='stop'>STOP</button>
     <br>
-    <input type='range' min='1' max='8' value='1'>
-    <div id='grid'>
-      <div class='measure' v-for='m in grid.measures'>
-        <div class='col' v-for='col in m'>
-          <div class='pointer'></div>
-          <Cell v-for='(cell, index) in col' @toggle-activated='toggleActivated(cell)' :key='index'></Cell>
+    <div id='loop-container'>
+        <div id='tabs-container'>
+            <div class='tab'>
+            </div>
+            <div class='tab'>
+            </div>
+            <div class='tab'>
+            </div>
         </div>
-      </div>
+        <div id='grid-container'>
+          <input id='slider' type='range' min='1' max='9' step='1'>
+          <div id='grid'>
+            <div class='measure' v-for='m in grid.measures'>
+              <div class='col' v-for='col in m'>
+                <!--<div class='pointer'></div>-->
+                <Cell class='grid-cell' v-for='(cell, index) in col' @toggle-activated='toggleActivated(cell)' :key='index'></Cell>
+                </div>
+              </div>
+            </div>
+        </div>
     </div>
   </div>
 </template>
@@ -102,30 +114,72 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+* {
+    margin: 0;
+    padding: 0;
+}
+#grid-container {
+    padding: .3vw;
+    //width: 30vw;
+    background: lightgreen;
+    flex: 3;
+}
+
+#slider {
+    width: 100%;
+}
+
 #grid {
   width: 100%;
   display: flex;
   flex-direction: row;
 }
+.cell.grid-cell {
+    border: 1px solid black;
+    border-radius: 2px;
+    margin: .3vw;
+    flex: 1;
+}
+
+.cell.grid-cell:before {
+    content: '';
+    display: block;
+    padding-top: 100%;
+    float: left;
+}
 .measure {
   display: flex;
   flex-direction: row;
+  flex: 1;
 }
 .col {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  //justify-content: space-around;
 }
-.pointer {
-  width: 20px;
-  height: 20px;
-  //background: blue;
-  margin: 2px;
-  //border: 1px solid black;
+
+#tabs-container {
+    flex: 1;
+    background: orange;
+    display: flex;
+    flex-direction: column;
 }
-.pointer-active {
-  background: blue;
-  border: 1px solid black;
+
+.tab {
+    flex: 1;
+    border: 1px solid tomato;
 }
+
+.active-tab {
+}
+
+#loop-container {
+    display: flex;
+    flex-direction: row;
+    width: 40vw;
+}
+
 #title {
   background:  yellow;
   text-align: center;

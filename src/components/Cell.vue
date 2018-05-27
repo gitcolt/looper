@@ -22,9 +22,9 @@ export default {
 
 <style scoped>
   .cell {
-    width: 20px;
-    height: 20px;
-    margin: 2px;
+    //width: 20px;
+    //height: 20px;
+    //margin: 2px;
     border: 1px solid black;
   }
   .active {
