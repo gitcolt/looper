@@ -53,7 +53,7 @@ export default {
     }
   },
   created () {
-    Tone.Transport.bpm.value = 100
+    Tone.Transport.bpm.value = 400
     // Initialize pointers
     for (let i = 0; i < (this.numMeasures * this.numCols); i++) {
       this.pointers.push({isActive: false})
@@ -156,10 +156,17 @@ export default {
     margin: 0;
     padding: 0;
 }
+
+#app {
+    //background: #d9d9d9;
+    background: blue;
+}
+
 #grid-container {
     padding: .3vw;
     //width: 30vw;
-    background: lightgreen;
+    //background: lightgreen;
+    background: white;
     flex: 3;
     border-width: 1px;
     border-style: solid solid solid none;
@@ -192,7 +199,6 @@ export default {
 
 .active-pointer-cell {
     background: red;
-    content: '\/';
 }
 
 .cell.grid-cell {
@@ -217,14 +223,15 @@ export default {
   display: flex;
   flex-direction: column;
   flex: 1;
-  //justify-content: space-around;
 }
 
 #instrument-tabs-container {
     flex: 1;
-    background: orange;
     display: flex;
     flex-direction: column;
+    background-image: url(../assets/dot.gif);
+    background-size: 2px 2px;
+    background-color: white;
 }
 
 .instrument-tab {
@@ -237,7 +244,7 @@ export default {
 }
 
 .active-instrument-tab {
-    background: darkorange;
+    background: white;
     border-width: 1px;
     border-style: solid none solid solid;
 }
@@ -249,7 +256,8 @@ export default {
 }
 
 #title {
-  background:  yellow;
+  background-image: url(../assets/dot.gif);
+  background-size: 2px 2px;
   text-align: center;
 }
 </style>
