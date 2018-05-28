@@ -15,11 +15,12 @@
             </div>
         </div>
         <div id='grid-container'>
-          <input id='slider' type='range' min='1' max='9' step='1'>
+          <div id='pointer'>
+            <div class='pointer-cell' v-for='p in pointers' :class='{ "active-pointer-cell": p.isActive}'>  </div>
+          </div>
           <div id='grid' v-for='(instrument, instrumentIndex) in instruments' v-show='instrument.isActive'>
             <div class='measure' v-for='m in instruments[instrumentIndex].grid.measures'>
               <div class='col' v-for='col in m'>
-                <!--<div class='pointer'></div>-->
                 <Cell class='grid-cell' v-for='(cell, cellIndex) in col' @toggle-activated='toggleActivated(cell)' :key='cellIndex'></Cell>
                 </div>
               </div>
@@ -43,15 +44,27 @@ export default {
     return {
       playing: false,
       msg: 'Looper',
-      grid: {},
       numMeasures: 6,
       numCols: 4,
       numRows: 5,
+      pointerIdx: 0,
+      pointers: [],
       instruments: [{name: 'Instrument 1', synthType: 'mono', part: {}, isActive: true, grid: {}}, {name: 'Instrument 2', synthType: 'membrane', part: {}, isActive: false, grid: {}}, {name: 'Instrument 3', synthType: 'membrane', part: {}, isActive: false, grid: {}}]
     }
   },
   created () {
-    Tone.Transport.bpm.value = 300
+    Tone.Transport.bpm.value = 100
+    // Initialize pointers
+    for (let i = 0; i < (this.numMeasures * this.numCols); i++) {
+      this.pointers.push({isActive: false})
+    }
+    this.pointers[this.pointerIdx].isActive = true
+    let that = this
+    Tone.Transport.scheduleRepeat(function (time) {
+      Tone.Draw.schedule(function () {
+        that.advancePointer()
+      }, time)
+    }, '4n')
 
     for (let i = 0; i < this.instruments.length; i++) {
       // Initialize grid
@@ -91,6 +104,11 @@ export default {
     }
   },
   methods: {
+    advancePointer () {
+      this.pointers[this.pointerIdx].isActive = false
+      this.pointerIdx = (this.pointerIdx + 1) % this.pointers.length
+      this.pointers[this.pointerIdx].isActive = true
+    },
     getSynth (type) {
       switch (type) {
         case 'mono':
@@ -143,10 +161,8 @@ export default {
     //width: 30vw;
     background: lightgreen;
     flex: 3;
-}
-
-#slider {
-    width: 100%;
+    border-width: 1px;
+    border-style: solid solid solid none;
 }
 
 #grid {
@@ -154,6 +170,31 @@ export default {
   display: flex;
   flex-direction: row;
 }
+
+#pointer {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.pointer-cell {
+    text-align: center;
+    margin: .3vw;
+    flex: 1;
+}
+
+.active-pointer-cell:before {
+    content: '';
+    display: block;
+    padding-top: 100%;
+    float: left;
+}
+
+.active-pointer-cell {
+    background: red;
+    content: '\/';
+}
+
 .cell.grid-cell {
     border: 1px solid black;
     border-radius: 1px;
@@ -191,10 +232,14 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+    border-width: 1px;
+    border-style: none solid none none;
 }
 
 .active-instrument-tab {
     background: darkorange;
+    border-width: 1px;
+    border-style: solid none solid solid;
 }
 
 #loop-container {
