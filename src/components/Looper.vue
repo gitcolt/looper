@@ -34,6 +34,7 @@
 /* eslint-disable no-multi-spaces */
 import Tone from 'tone'
 import Cell from './Cell'
+import StartAudioContext from 'startaudiocontext'
 
 export default {
   name: 'Looper',
@@ -44,7 +45,7 @@ export default {
     return {
       playing: false,
       msg: 'Looper',
-      numMeasures: 6,
+      numMeasures: 4,
       numCols: 4,
       numRows: 5,
       pointerIdx: 0,
@@ -53,6 +54,7 @@ export default {
     }
   },
   created () {
+    StartAudioContext(Tone.context)
     Tone.Transport.bpm.value = 400
     // Initialize pointers
     for (let i = 0; i < (this.numMeasures * this.numCols); i++) {
@@ -64,7 +66,7 @@ export default {
       Tone.Draw.schedule(function () {
         that.advancePointer()
       }, time)
-    }, '4n')
+    }, '4n', '4n')
 
     for (let i = 0; i < this.instruments.length; i++) {
       // Initialize grid
@@ -203,7 +205,7 @@ export default {
 
 .cell.grid-cell {
     border: 1px solid black;
-    border-radius: 1px;
+    border-radius: 2px;
     margin: .3vw;
     flex: 1;
 }

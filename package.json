@@ -13,6 +13,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "startaudiocontext": "^1.2.1",
     "tone": "^0.12.80",
     "vue": "^2.5.2"
   },
