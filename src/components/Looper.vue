@@ -1,6 +1,5 @@
 // TODO: Tone.Transport.bpm.value = val
 // Give notes a changeable duration
-// Fix autoplay bug
 <template>
   <!-- eslint-disable vue/require-v-for-key -->
   <div class='looper'>
@@ -26,6 +25,8 @@
               </div>
             </div>
         </div>
+        <div id='btn-add-measure' @click='addMeasure'>
+        </div>
     </div>
   </div>
 </template>
@@ -45,22 +46,18 @@ export default {
     return {
       playing: false,
       msg: 'Looper',
-      numMeasures: 4,
+      numMeasures: 0,
       numCols: 4,
       numRows: 5,
       pointerIdx: 0,
       pointers: [],
-      instruments: [{name: 'Instrument 1', synthType: 'mono', part: {}, isActive: true, grid: {}}, {name: 'Instrument 2', synthType: 'membrane', part: {}, isActive: false, grid: {}}, {name: 'Instrument 3', synthType: 'membrane', part: {}, isActive: false, grid: {}}]
+      instruments: [{name: 'Instrument 1', synthType: 'mono', part: {}, isActive: true, grid: {measures: []}}, {name: 'Instrument 2', synthType: 'membrane', part: {}, isActive: false, grid: {measures: []}}, {name: 'Instrument 3', synthType: 'membrane', part: {}, isActive: false, grid: {measures: []}}]
     }
   },
   created () {
     StartAudioContext(Tone.context)
-    Tone.Transport.bpm.value = 400
-    // Initialize pointers
-    for (let i = 0; i < (this.numMeasures * this.numCols); i++) {
-      this.pointers.push({isActive: false})
-    }
-    this.pointers[this.pointerIdx].isActive = true
+    Tone.Transport.bpm.value = 100
+
     let that = this
     Tone.Transport.scheduleRepeat(function (time) {
       Tone.Draw.schedule(function () {
@@ -69,10 +66,29 @@ export default {
     }, '4n', '4n')
 
     for (let i = 0; i < this.instruments.length; i++) {
-      // Initialize grid
-      this.instruments[i].grid.measures = []
-      for (let m = 0; m < this.numMeasures; m++) {
+      // Setup part
+      let synth = this.getSynth(this.instruments[i].synthType)
+      this.instruments[i].part = new Tone.Part((time, event) => {
+        synth.triggerAttackRelease(event.note, event.dur, time)
+        Tone.Draw.schedule(() => {
+
+        }, time)
+      }, []).start('0')
+      this.instruments[i].part.loop = true
+    }
+
+    for (let i = 0; i < 4; i++) {
+      this.addMeasure()
+    }
+
+    this.pointers[this.pointerIdx].isActive = true
+  },
+  methods: {
+    addMeasure () {
+      this.numMeasures++
+      for (let i = 0; i < this.instruments.length; i++) {
         this.instruments[i].grid.measures.push([])
+        let m = this.instruments[i].grid.measures.length - 1
         for (let col = 0; col < this.numCols; col++) {
           this.instruments[i].grid.measures[m].push([])
           // Assign notes
@@ -90,22 +106,16 @@ export default {
           this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'C#4', time: time, instrument: i})
           this.instruments[i].grid.measures[m][col].push({isActive: false, note: 'C4',  time: time, instrument: i})
         }
+        let end = this.instruments[i].grid.measures.length + ':0:0'
+        console.log(end)
+        this.instruments[i].part.loopEnd = end
       }
 
-      // Setup part
-      let synth = this.getSynth(this.instruments[i].synthType)
-      this.instruments[i].part = new Tone.Part((time, event) => {
-        synth.triggerAttackRelease(event.note, event.dur, time)
-        Tone.Draw.schedule(() => {
-
-        }, time)
-      }, []).start('0')
-      this.instruments[i].part.loop = true
-      let end = this.numMeasures + ':0:0'
-      this.instruments[i].part.loopEnd = end
-    }
-  },
-  methods: {
+      // Add pointers
+      for (let i = 0; i < 4; i++) {
+        this.pointers.push({isActive: false})
+      }
+    },
     advancePointer () {
       this.pointers[this.pointerIdx].isActive = false
       this.pointerIdx = (this.pointerIdx + 1) % this.pointers.length
@@ -169,7 +179,7 @@ export default {
     //width: 30vw;
     //background: lightgreen;
     background: white;
-    flex: 3;
+    flex: 30;
     border-width: 1px;
     border-style: solid solid solid none;
 }
@@ -228,7 +238,7 @@ export default {
 }
 
 #instrument-tabs-container {
-    flex: 1;
+    flex: 10;
     display: flex;
     flex-direction: column;
     background-image: url(../assets/dot.gif);
@@ -255,6 +265,11 @@ export default {
     display: flex;
     flex-direction: row;
     width: 80vw;
+}
+
+#btn-add-measure {
+    flex: 1;
+    background: blue;
 }
 
 #title {
